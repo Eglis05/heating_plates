@@ -14,7 +14,8 @@ from tespy.connections import Connection
 from tespy.components import (CycleCloser, Compressor, Valve, Pump, HeatExchanger, Source, Sink)
 from permutadores import Placas_aquecimento as placas
 
-heatPump = Network(T_unit='C', p_unit='Pa', h_unit='kJ / kg', iterinfo=False)
+eglis_testing = True
+heatPump = Network(fluids=['R32', 'GKN[0.6]', 'INCOMP::GKN[0.6]', 'Air'], T_unit='C', p_unit='Pa', h_unit='kJ / kg', iterinfo=False)
 
 closer = CycleCloser('Cycle closer') 
 Cooling1 = HeatExchanger('Permutador de placas Heating / Radiador Cooling')
@@ -127,6 +128,35 @@ else:
     
     h =  PSI("H", "T", 273.15 + T_cooling_in1, "P", pressureMix, coolingFluid1) / 1e3
     [c.set_attr(h0=h0) for c in [c10, c11]]
+
+    if eglis_testing:
+        data = 'connections.csv'
+
+        cop = abs(Cooling1.Q.val) / compressor.P.val
+
+        #Dimensionamento do permutador de placas paralelas B3-027
+
+        plates = 30
+        area_catalogo = (plates - 2) * 0.026
+
+        geometria = {
+            "port_D_wf": 0.0127,          
+            "port_D_cooling": 0.0127,   
+            "plate_thickness": 0.0005,    
+            "plate_conductivity": 14.9,  
+            "plate_angle": 60,
+            "wave_length": 0.008,        
+            "l_v": 0.311,           
+            "l_p": 0.25,           
+            "w_p": 0.111, 
+            "l_h": 0.05,                   
+            "d_g": 0.00236,                
+            "placas":  plates,
+            "area_catalogo": area_catalogo,                   
+        }
+
+        permutador = placas(geometria, wf, coolingFluid1, data)
+        permutador.calculo_areas_perdas(c0, c1, c10, c11)
 
     heatPump.solve(mode='design')
 
