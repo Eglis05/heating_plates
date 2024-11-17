@@ -115,7 +115,7 @@ class Placas_aquecimento:
                     except ValueError:
                         # print(f"Warning: Could not convert '{value}' to float for variable '{var}'. Keeping it as string.")
                         row_data[var] = value  # Keep it as string
-                label = row[len(filtered_headers) - 1]
+                label = row[0]
                 data[label] = row_data
 
         return data
